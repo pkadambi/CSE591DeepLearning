@@ -93,11 +93,15 @@ if __name__ == '__main__':
     params = r.get_params()    # This call should reaturn parameters of the model that are 
                                # fully trained.
 
-    data_test = dg.query_data(samples = 5000)  # Create a random testing dataset.
+    testNum=100
+    data_test = dg.query_data(samples = testNum)  # Create a random testing dataset.
     predictions = r.get_predictions(data_test[0]) # This call should return predictions.
     print "Rmse error of predictions = " + str(rmse(data_test[1], predictions))
-    
+    print 'Target RMSE:' + str(rmse(data_test[1],np.dot(data_test[0],dg.get_w())))
     
 
     print 'RMSE calculated with my method :' 
-    print  np.sqrt(r._get_squared_error(data_test[0],data_test[1],dg.get_w())/5000)
+    print r.rmse(data_test[0],data_test[1] )
+    fulldata=np.hstack([np.ones([testNum,1]),data_test[0]])
+    
+    print np.sum(predictions - np.dot(fulldata,np.vstack([params[1],params[0]])))
