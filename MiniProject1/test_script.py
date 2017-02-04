@@ -38,7 +38,7 @@ class dataset_generator(object):
     def __init__(self, **kwargs):
         low = 15
         high = 30
-        low = 10
+        low = 15
         high = 30
         if 'dimensions' in kwargs.keys():
             self.dimensions = kwargs['dimensions']
@@ -83,25 +83,33 @@ class dataset_generator(object):
         return self.b
 if __name__ == '__main__':
     print 'NEW RUN ************************************************************'
-    print 'TRUE WEIGHTS:'
+    
     
     dg = dataset_generator() # Initialize a dataset creator
-    print dg.get_w()
-    print dg.get_b()
-    data_train = dg.query_data(samples = 5000) # Create a random training dataset.
+
+    data_train = dg.query_data(samples = 100) # Create a random training dataset.
     r = regressor(data_train)  # This call should return a regressor object that is fully trained.
     params = r.get_params()    # This call should reaturn parameters of the model that are 
                                # fully trained.
 
-    testNum=100
+    testNum=1000
     data_test = dg.query_data(samples = testNum)  # Create a random testing dataset.
     predictions = r.get_predictions(data_test[0]) # This call should return predictions.
     print "Rmse error of predictions = " + str(rmse(data_test[1], predictions))
-    print 'Target RMSE:' + str(rmse(data_test[1],np.dot(data_test[0],dg.get_w())))
     
-
-    print 'RMSE calculated with my method :' 
-    print r.rmse(data_test[0],data_test[1] )
+    print 'Target RMSE:' + str(rmse(data_test[1],np.dot(data_test[0],dg.w)+dg.b))
+    
     fulldata=np.hstack([np.ones([testNum,1]),data_test[0]])
+    fullparams=np.vstack([params[1],params[0]])
+    print 'RMSE calculated with brute force soln bullshit:'
+    invweights = np.linalg.pinv(np.dot(np.dot(fulldata.T,fulldata),np.dot(fulldata.T,data_test[1]))) 
+    invweights = invweights.T
+    print r.rmse(np.dot(fulldata,invweights),data_test[1])
     
-    print np.sum(predictions - np.dot(fulldata,np.vstack([params[1],params[0]])))
+    
+    print np.sum(predictions - np.dot(fulldata,fullparams))
+    
+    print '\nWeights Error:'
+    print np.transpose(dg.w-r.w[1:])
+    print np.transpose(dg.b-r.w[0])
+    
